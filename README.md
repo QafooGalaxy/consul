@@ -1,5 +1,5 @@
-Qafooo Consul
-=============
+Qafoo Consul
+============
 
 Ansible Consul role which is foundational to the whole stack.
 
@@ -24,8 +24,10 @@ Minimal example:
       roles:
         - role: "qafoo.consul"
 
-The first five servers will be designated as consul servers, the rest will be
-clients. All clients auto join a set of five servers.
+All hosts in ``consul_server`` group will be designated as consul servers, the
+rest will be clients. All clients auto join the set of servers. Bootstrapping
+is done automatically using ``consul_bootstrap_expect`` with the number of
+server nodes.
 
 Advanced example:
 
