@@ -3,62 +3,55 @@
   get_url: >
       url=https://dl.bintray.com/mitchellh/consul/{{ consul_version }}_linux_amd64.zip
       dest=/tmp/consul_linux_amd64.zip
-  register: consul_was_downloaded
 
 - name: create consul group
   group: >
-    name={{ consul_group }}
-    state=present
+      name={{ consul_group }}
+      state=present
 
 - name: create consul user
   user: >
-    name={{ consul_user }}
-    group={{ consul_group }}
+      name={{ consul_user }}
+      group={{ consul_group }}
 
 - name: create consul directory
   file: >
-    state=directory
-    path={{ item }}
-    owner={{ consul_user }}
-    group={{ consul_group }}
+      state=directory
+      path={{ item }}
+      owner={{ consul_user }}
+      group={{ consul_group }}
   with_items:
     - "{{ consul_home }}"
     - "{{ consul_home }}/bin"
     - "{{ consul_data_dir }}"
     - "{{ consul_config_dir }}"
     - "{{ consul_log_dir }}"
-    - "{{ consul_envconsul_dir }}"
+    - "/etc/consul.template.d"
 
 - name: copy and unpack
   unarchive: >
-    src=/tmp/consul_linux_amd64.zip
-    dest={{ consul_home }}/bin
-    copy=no
-    creates=/opt/consul/bin/consul
-    owner={{ consul_user }}
-    group={{ consul_group }}
-
-- name: symlink consul to path
-  file: >
-    src=/opt/consul/bin/consul
-    dest=/usr/local/bin/consul
-    state=link
+      src=/tmp/consul_linux_amd64.zip
+      dest={{ consul_home }}/bin
+      copy=no
+      creates=/opt/consul/bin/consul
+      owner={{ consul_user }}
+      group={{ consul_group }}
 
 - name: copy consul upstart script
   template: >
-    src=consul.conf.j2
-    dest=/etc/init/consul.conf
-    owner={{ consul_user }}
-    group={{ consul_group }}
-    mode=0755
+      src=consul.conf.j2
+      dest=/etc/init/consul.conf
+      owner={{ consul_user }}
+      group={{ consul_group }}
+      mode=0755
 
 - name: consul config file
   template: >
-    src=consul.json.j2
-    dest={{ consul_config_file }}
-    owner={{ consul_user }}
-    group={{ consul_group }}
-    mode=0755
+      src=consul.json.j2
+      dest={{ consul_config_file }}
+      owner={{ consul_user }}
+      group={{ consul_group }}
+      mode=0755
   notify: "Restart Consul"
 
 - name: Logrotate for Consul
@@ -68,40 +61,75 @@
 
 - name: Install dnsmasq
   apt: >
-    pkg=dnsmasq
-    state=installed
+      pkg=dnsmasq
+      state=installed
 
 - name: Configure dnsmasq
   copy: >
-    content='server=/{{ consul_domain }}/127.0.0.1#8600'
-    dest=/etc/dnsmasq.d/10-consul
+      content='server=/{{ consul_domain }}/127.0.0.1#8600'
+      dest=/etc/dnsmasq.d/10-consul
   notify:
     - Restart dnsmasq
 
 - name: download envconsul
   get_url: >
       url={{ consul_envconsul_download }}
-      dest=/tmp/envconsul-{{ consul_envconsul_version }}.zip
+      dest=/tmp/envconsul-{{ consul_envconsul_version }}.tar.gz
 
 - name: extract envconsul 
   unarchive: >
-    src=/tmp/envconsul-{{ consul_envconsul_version }}.zip
-    dest=/tmp
-    copy=no
-    creates=/tmp/{{ consul_envconsul_name }}/envconsul
-    owner={{ consul_user }}
-    group={{ consul_group }}
+      src=/tmp/envconsul-{{ consul_envconsul_version }}.tar.gz
+      dest=/tmp
+      copy=no
+      creates=/tmp/{{ consul_envconsul_name }}/envconsul
+      owner={{ consul_user }}
+      group={{ consul_group }}
 
 - name: copy envconsul to bindir
   command: >
-      cp /tmp/{{ consul_envconsul_name }}/envconsul /opt/envconsul/envconsul
-      creates=/opt/envconsul/envconsul
+      cp /tmp/{{ consul_envconsul_name }}/envconsul /opt/consul/bin/envconsul
+      creates=/opt/consul/bin/envconsul
 
-- name: symlink envconsul to path
+- name: download consul-template
+  get_url: >
+      url={{ consul_template_download }}
+      dest=/tmp/consul-template-{{ consul_template_version }}.tar.gz
+
+- name: extract consul-template
+  unarchive: >
+      src=/tmp/consul-template-{{ consul_template_version }}.tar.gz
+      dest=/tmp
+      copy=no
+      creates=/tmp/{{ consul_template_name }}/consul-template
+      owner={{ consul_user }}
+      group={{ consul_group }}
+
+- name: copy consul-template to bin dir
+  command: >
+      cp /tmp/{{ consul_template_name }}/consul-template /opt/consul/bin/consul-template
+      creates=/opt/consul/bin/consul-template
+
+- name: prepare consul-template base configuration
+  template: >
+      src=consul-template.j2
+      dest=/etc/consul.template.d/01-template.hcl
+      owner={{ consul_user }}
+      group={{ consul_group }}
+
+- name: setup upstart job
+  template: >
+      src=consul-template.conf.j2
+      dest=/etc/init/consul-template.conf
+
+- name: symlink consul to path
   file: >
-    src=/opt/envconsul/envconsul
-    dest=/usr/local/bin/envconsul
-    state=link
+      src=/opt/consul/bin/{{ item }}
+      dest=/usr/local/bin/{{ item }}
+      state=link
+  with_items:
+      - consul
+      - envconsul
+      - consul-template
 
-- name: "Make sure consul is started"
+- name: Make sure consul is started
   service: name=consul state=started
