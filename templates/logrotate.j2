@@ -1,0 +1,11 @@
+/var/log/consul/*.log {
+	{{ consul_rotation_interval }}
+	missingok
+	rotate {{ consul_rotation_files }}
+	compress
+	delaycompress
+	notifempty
+	create 0640 {{ consul_user }} {{ consul_group }}
+	sharedscripts
+}
+
