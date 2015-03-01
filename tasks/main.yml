@@ -1,5 +1,5 @@
 ---
-- name: "Download Consul"
+- name: download consul
   get_url: >
       url=https://dl.bintray.com/mitchellh/consul/{{ consul_version }}_linux_amd64.zip
       dest=/tmp/consul_linux_amd64.zip
@@ -27,6 +27,7 @@
     - "{{ consul_data_dir }}"
     - "{{ consul_config_dir }}"
     - "{{ consul_log_dir }}"
+    - "{{ consul_envconsul_dir }}"
 
 - name: copy and unpack
   unarchive: >
@@ -76,3 +77,31 @@
     dest=/etc/dnsmasq.d/10-consul
   notify:
     - Restart dnsmasq
+
+- name: download envconsul
+  get_url: >
+      url={{ consul_envconsul_download }}
+      dest=/tmp/envconsul-{{ consul_envconsul_version }}.zip
+
+- name: extract envconsul 
+  unarchive: >
+    src=/tmp/envconsul-{{ consul_envconsul_version }}.zip
+    dest=/tmp
+    copy=no
+    creates=/tmp/{{ consul_envconsul_name }}/envconsul
+    owner={{ consul_user }}
+    group={{ consul_group }}
+
+- name: copy envconsul to bindir
+  command: >
+      cp /tmp/{{ consul_envconsul_name }}/envconsul /opt/envconsul/envconsul
+      creates=/opt/envconsul/envconsul
+
+- name: symlink envconsul to path
+  file: >
+    src=/opt/envconsul/envconsul
+    dest=/usr/local/bin/envconsul
+    state=link
+
+- name: "Make sure consul is started"
+  service: name=consul state=started

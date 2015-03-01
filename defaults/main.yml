@@ -33,3 +33,8 @@ consul_enable_nginx_config: true
 consul_is_ui: false
 consul_ui_require_auth: false
 consul_ui_auth_user_file: /etc/htpasswd/consul
+
+consul_envconsul_version: "0.5.0"
+consul_envconsul_name: "envconsul_{{ consul_envconsul_version }}_linux_amd64"
+consul_envconsul_download: "https://github.com/hashicorp/envconsul/releases/download/v{{ consul_envconsul_version }}/{{ consul_envconsul_name }}.tar.gz"
+consul_envconsul_dir: "/opt/envconsul"
