@@ -132,4 +132,7 @@
       - consul-template
 
 - name: Make sure consul is started
-  service: name=consul state=started
+  service: name={{ item }} state=started
+  with_items:
+      - consul
+      - consul-template
