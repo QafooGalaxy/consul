@@ -3,7 +3,7 @@ description "Consul-Template"
 start on (local-filesystems and net-device-up IFACE!=lo)
 stop on runlevel [06]
 
-exec sudo -u {{ consul_user }} -g {{ consul_group }} {{ consul_home }}/bin/consul-template -config /etc/consul.template.d/ >> {{ consul_log_file }} 2>&1
+exec sudo {{ consul_home }}/bin/consul-template -config /etc/consul.template.d/ >> {{ consul_log_file }} 2>&1
 respawn
 respawn limit 10 10
 kill timeout 10
