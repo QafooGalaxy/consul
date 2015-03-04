@@ -1,0 +1,10 @@
+{
+    "name": "qafoogalaxy/foorge.consul",
+    "description": "Consul Base Dependency for a Foorge Cluster",
+    "license": "Apache-2.0",
+    "type": "ansible-role",
+    "require": {
+        "qafoogalaxy/installer": "@stable",
+        "qafoogalaxy/foorge.base": "@stable"
+    }
+}
