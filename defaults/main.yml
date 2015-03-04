@@ -41,3 +41,4 @@ consul_envconsul_download: "https://github.com/hashicorp/envconsul/releases/down
 consul_template_version: "0.7.0"
 consul_template_name: "consul-template_{{ consul_template_version }}_linux_amd64"
 consul_template_download: "https://github.com/hashicorp/consul-template/releases/download/v0.7.0/{{ consul_template_name }}.tar.gz"
+consul_template_log_file: "{{ consul_log_dir }}/consul-template.log"
