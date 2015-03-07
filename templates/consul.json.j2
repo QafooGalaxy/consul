@@ -7,7 +7,7 @@
 {% if consul_join_at_start and groups['consul_server'] is defined %}
   "start_join": [
 {% for host in groups['consul']|default([]) %}
-    "{{ hostvars[host]['ansible_all_ipv4_addresses']|ipaddr('private')|first }}"{% if not loop.last %},{% endif %}
+    "{{ hostvars[host]['ansible_all_ipv4_addresses']|ipaddr('private')|first|default('127.0.0.1') }}"{% if not loop.last %},{% endif %}
 {% endfor %}
   ],
 {% endif %}

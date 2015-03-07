@@ -4,6 +4,3 @@
 
 - name: "Reload Consul"
   command: consul reload
-
-- name: "Restart dnsmasq"
-  service: name=dnsmasq state=restarted

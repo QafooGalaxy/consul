@@ -69,8 +69,11 @@
   copy: >
       content='server=/{{ consul_domain }}/127.0.0.1#8600'
       dest=/etc/dnsmasq.d/10-consul
-  notify:
-    - Restart dnsmasq
+  register: consul_dnsmasq_changed
+
+- name: Restart dnsmasq
+  service: name=dnsmasq state=restarted
+  when: consul_dnsmasq_changed|changed
 
 - name: download envconsul
   get_url: >
@@ -137,3 +140,10 @@
   with_items:
       - consul
       - consul-template
+
+- name: Add ansible fact.d for consul
+  template: src=ansible.fact.j2 dest=/etc/ansible/facts.d/consul.fact
+  register: consul_ansible_fact
+
+- name: Re-run setup when ansible fact changed
+  setup: filter=ansible_local
